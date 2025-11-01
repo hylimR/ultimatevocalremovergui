@@ -15,6 +15,43 @@ This application uses state-of-the-art source separation models to remove vocals
 - **Support the Project**
     - [Donate](https://www.buymeacoffee.com/uvr5)
 
+<details>
+  <summary>Command-Line Interface (CLI) Usage</summary>
+
+  ### Using the CLI
+
+  In addition to the graphical user interface, UVR now offers a command-line interface (CLI) to perform vocal removals. This is useful for batch processing, scripting, and for users who prefer working in a terminal.
+
+  #### How to Use
+
+  To use the CLI, you run the `UVR.py` script with Python and provide the necessary arguments.
+
+  #### Arguments
+
+  - `-i` or `--input_path`: Path to the input audio file. (Required)
+  - `-o` or `--output_path`: Path to the output directory. (Required)
+  - `-m` or `--model`: Name of the model to use. (Required)
+  - `-v` or `--vocal_stem`: Name of the vocal stem. (Default: 'Vocals')
+  - `-i_stem` or `--instrumental_stem`: Name of the instrumental stem. (Default: 'Instrumental')
+  - `-g` or `--gpu`: GPU device to use. Use -1 for CPU. (Default: -1)
+
+  #### Example
+
+  Here is an example of how to run a vocal removal from the command line:
+
+  ```bash
+  python UVR.py -i /path/to/your/song.mp3 -o /path/to/output -m "VR Arch-UVR-MDX-NET-Inst_1"
+  ```
+
+  This command will:
+  - Process the file `/path/to/your/song.mp3`.
+  - Save the output files to the `/path/to/output` directory.
+  - Use the "VR Arch-UVR-MDX-NET-Inst_1" model for the separation.
+  - Use the default stem names ('Vocals' and 'Instrumental').
+  - Run the process on the CPU.
+
+</details>
+
 ## Installation
 
 These bundles contain the UVR interface, Python, PyTorch, and other dependencies needed to run the application effectively. No prerequisites are required.
