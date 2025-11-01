@@ -7247,19 +7247,26 @@ def extract_stems(audio_file_base, export_path):
     return list(set(filtered_lst))
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        from cli import main as cli_main
+        cli_main()
+    else:
+        try:
+            from ctypes import windll, wintypes
+            windll.user32.SetThreadDpiAwarenessContext(wintypes.HANDLE(-1))
+        except (ImportError, AttributeError):
+            if OPERATING_SYSTEM == "Windows":
+                print("Could not set DPI awareness. GUI might appear blurry.")
+        except Exception as e:
+            if OPERATING_SYSTEM == "Windows":
+                print(f"An unexpected error occurred while setting DPI awareness: {e}")
 
-    try:
-        windll.user32.SetThreadDpiAwarenessContext(wintypes.HANDLE(-1))
-    except Exception as e:
-        if OPERATING_SYSTEM == 'Windows':
-            print(e)
-    
-    root = MainWindow()
-    root.update_checkbox_text()
-    root.is_root_defined_var.set(True)
-    root.is_check_splash = True
+        root = MainWindow()
+        root.update_checkbox_text()
+        root.is_root_defined_var.set(True)
+        root.is_check_splash = True
 
-    root.update() if is_windows else root.update_idletasks()
-    root.deiconify()
-    root.configure(bg=BG_COLOR)
-    root.mainloop()
+        root.update() if is_windows else root.update_idletasks()
+        root.deiconify()
+        root.configure(bg=BG_COLOR)
+        root.mainloop()
