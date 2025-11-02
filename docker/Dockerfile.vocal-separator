@@ -1,0 +1,29 @@
+# Dockerfile for Vocal Separator Lambda
+FROM public.ecr.aws/lambda/python:3.11
+
+# Install system dependencies for audio processing
+RUN yum install -y \
+    libsndfile \
+    && yum clean all
+
+# Copy requirements and install dependencies
+COPY lambda/vocal-separator/requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt
+
+# Copy lib_v5 code (vocal separation library)
+COPY lib_v5/ /opt/lib_v5/
+
+# Create models directory
+RUN mkdir -p /opt/models
+
+# Copy handler
+COPY lambda/vocal-separator/handler.py ${LAMBDA_TASK_ROOT}/
+
+# Note: Add your ONNX models to /opt/models/
+# You can download models and add them during build:
+# COPY models/onnx/MDX23C-8KFFT-InstVoc_HQ.onnx /opt/models/
+# COPY models/onnx/Kim_Vocal_2.onnx /opt/models/
+# COPY models/onnx/UVR-MDX-NET-Inst_HQ_3.onnx /opt/models/
+
+# Set handler
+CMD [ "handler.lambda_handler" ]

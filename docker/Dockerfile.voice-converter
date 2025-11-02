@@ -1,0 +1,26 @@
+# Dockerfile for Voice Converter Lambda (RVC)
+FROM public.ecr.aws/lambda/python:3.11
+
+# Install system dependencies for audio processing
+RUN yum install -y \
+    libsndfile \
+    && yum clean all
+
+# Copy requirements and install dependencies
+COPY lambda/voice-converter/requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt
+
+# Create RVC models directory
+RUN mkdir -p /opt/models/rvc
+
+# Copy handler
+COPY lambda/voice-converter/handler.py ${LAMBDA_TASK_ROOT}/
+
+# Note: Add your RVC ONNX models to /opt/models/rvc/
+# COPY models/rvc/default_voice.onnx /opt/models/rvc/
+# COPY models/rvc/deep_male.onnx /opt/models/rvc/
+# COPY models/rvc/female_pop.onnx /opt/models/rvc/
+# COPY models/rvc/anime_character.onnx /opt/models/rvc/
+
+# Set handler
+CMD [ "handler.lambda_handler" ]

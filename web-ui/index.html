@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vocal Remover & Voice Converter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 AI Vocal Remover & Voice Converter</h1>
+            <p>Upload audio or video to separate vocals and convert to AI cloned voices</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-zone" id="uploadZone">
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p class="upload-text">Drag & drop your audio/video file here</p>
+                    <p class="upload-subtext">or click to browse</p>
+                    <p class="upload-limits">Max size: 500MB • Max duration: 10 minutes</p>
+                    <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.wav,.mp4,.avi,.mov,.flac,.m4a,.aac,.ogg,.webm,.mkv" hidden>
+                </div>
+
+                <!-- File Info -->
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-details">
+                        <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                        <div>
+                            <p class="file-name" id="fileName"></p>
+                            <p class="file-meta" id="fileMeta"></p>
+                        </div>
+                    </div>
+                    <button class="btn-remove" id="removeFile">&times;</button>
+                </div>
+
+                <!-- Model Selection -->
+                <div class="model-section">
+                    <label for="modelSelect">Separation Model:</label>
+                    <select id="modelSelect" class="model-select">
+                        <option value="mdx_karaoke" selected>MDX-Net Karaoke (Recommended)</option>
+                        <option value="mdx_extra">MDX-Net Extra</option>
+                        <option value="vr_arch">VR Architecture 5.0</option>
+                        <option value="demucs_v4">Demucs v4 HT</option>
+                    </select>
+                </div>
+
+                <!-- Voice Conversion Model -->
+                <div class="model-section">
+                    <label for="voiceSelect">Voice Conversion (Optional):</label>
+                    <select id="voiceSelect" class="model-select">
+                        <option value="none" selected>None (Vocal Separation Only)</option>
+                        <option value="default_voice">Default Voice</option>
+                        <option value="voice_1">Voice 1 - Deep Male</option>
+                        <option value="voice_2">Voice 2 - Female Pop</option>
+                        <option value="voice_3">Voice 3 - Anime Character</option>
+                    </select>
+                </div>
+
+                <!-- Process Button -->
+                <button class="btn-process" id="processBtn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Process Audio
+                </button>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection" style="display: none;">
+                <div class="progress-header">
+                    <h2>Processing Your Audio</h2>
+                    <p id="progressStatus">Initializing...</p>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-percent" id="progressPercent">0%</p>
+
+                <div class="progress-steps">
+                    <div class="step" id="step1">
+                        <div class="step-icon">1</div>
+                        <p>Uploading</p>
+                    </div>
+                    <div class="step" id="step2">
+                        <div class="step-icon">2</div>
+                        <p>Converting</p>
+                    </div>
+                    <div class="step" id="step3">
+                        <div class="step-icon">3</div>
+                        <p>Separating</p>
+                    </div>
+                    <div class="step" id="step4">
+                        <div class="step-icon">4</div>
+                        <p>Voice Conversion</p>
+                    </div>
+                    <div class="step" id="step5">
+                        <div class="step-icon">5</div>
+                        <p>Finalizing</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2>Processing Complete!</h2>
+                    <p>Your audio has been processed successfully</p>
+                </div>
+
+                <div class="download-cards">
+                    <div class="download-card">
+                        <h3>🎤 Vocals</h3>
+                        <audio controls id="vocalsPreview"></audio>
+                        <button class="btn-download" id="downloadVocals">
+                            Download Vocals
+                        </button>
+                    </div>
+                    <div class="download-card">
+                        <h3>🎸 Instrumental</h3>
+                        <audio controls id="instrumentalPreview"></audio>
+                        <button class="btn-download" id="downloadInstrumental">
+                            Download Instrumental
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn-new" id="newProcessing">Process Another File</button>
+            </div>
+
+            <!-- Error Section -->
+            <div class="error-section" id="errorSection" style="display: none;">
+                <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3>Oops! Something went wrong</h3>
+                <p id="errorMessage"></p>
+                <button class="btn-retry" id="retryBtn">Try Again</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by AI • Max file size: 500MB • Max duration: 10 minutes</p>
+            <p>Files are automatically deleted after 7 days</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

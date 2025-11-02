@@ -1,0 +1,22 @@
+# Dockerfile for Video Converter Lambda
+FROM public.ecr.aws/lambda/python:3.11
+
+# Install FFmpeg
+RUN yum install -y wget tar xz && \
+    wget -q https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+    tar xf ffmpeg-release-amd64-static.tar.xz && \
+    mv ffmpeg-*-static/ffmpeg /usr/local/bin/ && \
+    mv ffmpeg-*-static/ffprobe /usr/local/bin/ && \
+    chmod +x /usr/local/bin/ffmpeg /usr/local/bin/ffprobe && \
+    rm -rf ffmpeg-* && \
+    yum clean all
+
+# Copy requirements and install dependencies
+COPY lambda/video-converter/requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt
+
+# Copy handler
+COPY lambda/video-converter/handler.py ${LAMBDA_TASK_ROOT}/
+
+# Set handler
+CMD [ "handler.lambda_handler" ]

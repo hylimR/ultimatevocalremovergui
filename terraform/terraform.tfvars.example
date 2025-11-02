@@ -1,0 +1,19 @@
+# Copy this file to terraform.tfvars and customize for your deployment
+
+# AWS Region
+aws_region = "us-east-1"
+
+# Environment (dev, staging, prod)
+environment = "prod"
+
+# Project name (used for resource naming)
+project_name = "vocal-remover"
+
+# Maximum uploads per IP per day
+max_uploads_per_day = 5
+
+# Maximum file size in bytes (500MB)
+max_file_size = 524288000
+
+# Enable AWS WAF for additional rate limiting (incurs additional costs)
+enable_waf = false

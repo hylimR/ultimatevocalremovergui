@@ -1,0 +1,300 @@
+{
+  "Comment": "Vocal Remover and Voice Converter Workflow",
+  "StartAt": "UpdateStatusProcessing",
+  "States": {
+    "UpdateStatusProcessing": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "${JobsTable}",
+        "Key": {
+          "job_id": {
+            "S.$": "$.job_id"
+          }
+        },
+        "UpdateExpression": "SET #status = :status, progress = :progress, updated_at = :updated_at",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "PROCESSING"
+          },
+          ":progress": {
+            "N": "20"
+          },
+          ":updated_at": {
+            "S.$": "$$.State.EnteredTime"
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "IsVideo"
+    },
+    "IsVideo": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.is_video",
+          "BooleanEquals": true,
+          "Next": "ConvertVideoToAudio"
+        }
+      ],
+      "Default": "SeparateVocals"
+    },
+    "ConvertVideoToAudio": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${VideoConverterFunction}",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "job_id.$": "$.Payload.job_id",
+        "bucket.$": "$.Payload.bucket",
+        "audio_key.$": "$.Payload.audio_key",
+        "model.$": "$.Payload.model",
+        "voice_model.$": "$.Payload.voice_model",
+        "duration.$": "$.Payload.duration"
+      },
+      "ResultPath": "$",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed",
+            "States.Timeout"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "ProcessingFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "UpdateStatusConverting"
+    },
+    "UpdateStatusConverting": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "${JobsTable}",
+        "Key": {
+          "job_id": {
+            "S.$": "$.job_id"
+          }
+        },
+        "UpdateExpression": "SET #status = :status, progress = :progress",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "CONVERTING"
+          },
+          ":progress": {
+            "N": "35"
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "SeparateVocals"
+    },
+    "SeparateVocals": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${VocalSeparatorFunction}",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "job_id.$": "$.Payload.job_id",
+        "bucket.$": "$.Payload.bucket",
+        "vocals_key.$": "$.Payload.vocals_key",
+        "instrumental_key.$": "$.Payload.instrumental_key",
+        "voice_model.$": "$.Payload.voice_model"
+      },
+      "ResultPath": "$",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed",
+            "States.Timeout"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "ProcessingFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "UpdateStatusSeparating"
+    },
+    "UpdateStatusSeparating": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "${JobsTable}",
+        "Key": {
+          "job_id": {
+            "S.$": "$.job_id"
+          }
+        },
+        "UpdateExpression": "SET #status = :status, progress = :progress",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "SEPARATING"
+          },
+          ":progress": {
+            "N": "60"
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "ConvertVoice"
+    },
+    "ConvertVoice": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${VoiceConverterFunction}",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "job_id.$": "$.Payload.job_id",
+        "bucket.$": "$.Payload.bucket",
+        "converted_vocals_key.$": "$.Payload.converted_vocals_key",
+        "vocals_key.$": "$.Payload.vocals_key",
+        "instrumental_key.$": "$.Payload.instrumental_key",
+        "voice_converted.$": "$.Payload.voice_converted"
+      },
+      "ResultPath": "$",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed",
+            "States.Timeout"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "ProcessingFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "UpdateStatusVoiceConversion"
+    },
+    "UpdateStatusVoiceConversion": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "${JobsTable}",
+        "Key": {
+          "job_id": {
+            "S.$": "$.job_id"
+          }
+        },
+        "UpdateExpression": "SET #status = :status, progress = :progress",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "VOICE_CONVERSION"
+          },
+          ":progress": {
+            "N": "80"
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "Cleanup"
+    },
+    "Cleanup": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${CleanupFunction}",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "job_id.$": "$.Payload.job_id",
+        "status.$": "$.Payload.status"
+      },
+      "ResultPath": "$",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "ProcessingFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "ProcessingComplete"
+    },
+    "ProcessingComplete": {
+      "Type": "Succeed"
+    },
+    "ProcessingFailed": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "${JobsTable}",
+        "Key": {
+          "job_id": {
+            "S.$": "$.job_id"
+          }
+        },
+        "UpdateExpression": "SET #status = :status, results = :results",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "FAILED"
+          },
+          ":results": {
+            "M": {
+              "error": {
+                "S.$": "$.error.Cause"
+              }
+            }
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "FailState"
+    },
+    "FailState": {
+      "Type": "Fail",
+      "Error": "ProcessingError",
+      "Cause": "Audio processing failed"
+    }
+  }
+}
