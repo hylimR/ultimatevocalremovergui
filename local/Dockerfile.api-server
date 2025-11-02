@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir \
+    flask==3.0.0 \
+    flask-cors==4.0.0 \
+    boto3==1.28.0 \
+    python-dotenv==1.0.0
+
+# Copy API server code
+COPY local/api-server /app
+
+EXPOSE 3000
+
+CMD ["python", "server.py"]

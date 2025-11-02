@@ -1,12 +1,4 @@
-// Configuration - Update these with your deployed endpoints
-const CONFIG = {
-    API_ENDPOINT: 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod',
-    MAX_FILE_SIZE: 500 * 1024 * 1024, // 500MB
-    MAX_DURATION: 600, // 10 minutes in seconds
-    POLL_INTERVAL: 3000, // 3 seconds
-    ALLOWED_AUDIO_FORMATS: ['mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg', 'opus', 'webm'],
-    ALLOWED_VIDEO_FORMATS: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'm4v']
-};
+// CONFIG is loaded from config.js
 
 // State
 let currentFile = null;
@@ -201,7 +193,7 @@ async function processFile() {
 }
 
 async function getPresignedUrl(file) {
-    const response = await fetch(`${CONFIG.API_ENDPOINT}/upload`, {
+    const response = await fetch(`${CONFIG.apiEndpoint}/upload`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -241,13 +233,13 @@ function startPolling() {
     uploadSection.style.display = 'none';
     progressSection.style.display = 'block';
 
-    pollInterval = setInterval(checkStatus, CONFIG.POLL_INTERVAL);
+    pollInterval = setInterval(checkStatus, CONFIG.pollInterval);
     checkStatus(); // Initial check
 }
 
 async function checkStatus() {
     try {
-        const response = await fetch(`${CONFIG.API_ENDPOINT}/status/${currentJobId}`);
+        const response = await fetch(`${CONFIG.apiEndpoint}/status/${currentJobId}`);
 
         if (!response.ok) {
             throw new Error('Failed to get job status');

@@ -78,3 +78,12 @@ tmp/
 # Backup files
 *.bak
 *.backup
+
+# Local development
+local/localstack-data/
+local/test-audio.mp3
+local/test-video.mp4
+local/*.mp3
+local/*.mp4
+local/*.wav
+local/*.flac
